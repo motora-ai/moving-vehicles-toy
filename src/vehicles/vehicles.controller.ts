@@ -13,7 +13,7 @@ import { VehicleService } from './vehicles.service';
 
 @Controller('vehicles')
 export class VehicleController {
-  constructor(private vehicleService: VehicleService) {}
+  constructor(private vehicleService: VehicleService) { }
 
   @Get('/')
   getVehicle() {
@@ -33,12 +33,25 @@ export class VehicleController {
 
   @Post('/')
   postVehicle(@Body() vehicle: any) {
-    return this.vehicleService.postVehicle(vehicle);
+    const response = this.vehicleService.postVehicle(vehicle);
+
+    return response;
+
+  }
+
+  @Post('/moveVehicle/:id')
+  moveVehicle(@Param('id') vehicleId: string) {
+    const response = this.vehicleService.moveVehicle(parseInt(vehicleId));
+
+    return response;
   }
 
   @Put(':id')
-  putVehicle(@Param('id') vehicleId: number, @Body() vehicle: any) {
-    const response = this.vehicleService.putVehicle(vehicle, vehicleId);
+  putVehicle(@Param('id') vehicleId: string, @Body() vehicle: any) {
+    const response = this.vehicleService.putVehicle(
+      vehicle,
+      parseInt(vehicleId),
+    );
 
     if (!response) {
       throw new NotFoundException('Vehicle not found');
@@ -59,8 +72,8 @@ export class VehicleController {
   }
 
   @Patch(':id')
-  patchVehicle(@Param('id') vehicleId: number, @Body() vehicle: any) {
-    const response = this.vehicleService.patchVehicle(vehicleId, vehicle);
+  patchVehicle(@Param('id') vehicleId: string, @Body() vehicle: any) {
+    const response = this.vehicleService.patchVehicle(parseInt(vehicleId), vehicle);
 
     if (!response) {
       throw new NotFoundException('Vehicle not found');
@@ -68,4 +81,12 @@ export class VehicleController {
 
     return response;
   }
+
+  @Get('/vehiclesByStatus/:status')
+  getVehiclesByStatus(@Param('status') status: string): any[] {
+    const response = this.vehicleService.getVehiclesByStatus(status);
+
+    return response;
+  }
+
 }

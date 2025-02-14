@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { VehiclesGateway } from './vehicles.gateway';
 
 @Injectable()
 export class VehicleService {
   private lastUsedId: number = 5;
   private readonly vehicles: any[];
-  constructor() {
+  constructor(private vehiclesGateway: VehiclesGateway) {
     this.vehicles = JSON.parse(
       readFileSync(
         join(process.cwd(), 'src/vehicles/vehicles.data.json'),
@@ -29,6 +30,8 @@ export class VehicleService {
     vehicle.lat = 51.5049375;
     vehicle.lng = -0.0964509;
     this.vehicles.push(vehicle);
+
+    this.vehiclesGateway.sendCreated(vehicle);
     return vehicle;
   }
 
@@ -45,6 +48,8 @@ export class VehicleService {
     vehicle.lng = vehicle.lng || -0.0964509;
 
     this.vehicles[index] = vehicle;
+
+    this.vehiclesGateway.sendUpdated(vehicle);
     return vehicle;
   }
 
@@ -56,6 +61,8 @@ export class VehicleService {
     }
     const vehicle = this.vehicles[index];
     this.vehicles.splice(index, 1);
+
+    this.vehiclesGateway.sendDeleted(vehicle);
     return vehicle;
   }
 
@@ -67,6 +74,8 @@ export class VehicleService {
     const updatedVehicle = { ...this.vehicles[index], ...vehicle };
     updatedVehicle.id = vehicleId;
     this.vehicles[index] = updatedVehicle;
+
+    this.vehiclesGateway.sendUpdated(updatedVehicle);
     return updatedVehicle;
   }
 
@@ -76,7 +85,13 @@ export class VehicleService {
     // lat between -20.24571953578169 and -20.265185577202995
     // long between -40.27327454373077 and -40.25906248156139
     // speed between 0 and 100
-    const vehicle = this.vehicles[randomIndex];
+    const vehicle = this.moveVehicle(randomIndex);
+
+    return vehicle;
+  }
+
+  moveVehicle(vehicleId: number): any {
+    const vehicle = this.getById(vehicleId);
 
     vehicle.lat =
       -20.24571953578169 +
@@ -90,6 +105,14 @@ export class VehicleService {
 
     vehicle.status = 'moving';
 
-    return vehicle;
+    const updatedVehicle = this.putVehicle(vehicle, vehicleId);
+
+    return updatedVehicle;
+
   }
+
+  getVehiclesByStatus(status: string): any[] {
+    return this.vehicles.filter((vehicle) => vehicle.status == status);
+  }
+
 }
